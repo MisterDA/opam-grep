@@ -7,12 +7,18 @@ module Manpage = Cmdliner.Manpage
 let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
-let main regexp_arg main_regexp =
+let main repos regexp_arg main_regexp =
   match regexp_arg, main_regexp with
   | Some _, Some _ -> `Error (true, "Two regexps given. This is not supported yet") (* TODO *)
   | None, None -> `Error (true, "No regexp given. This is required")
   | Some regexp, None
-  | None, Some regexp -> `Ok (fun () -> Grep.search ~regexp)
+  | None, Some regexp -> `Ok (fun () -> Grep.search ~repos ~regexp)
+
+let repos_arg =
+  let doc = "" in (* TODO *)
+  Arg.value &
+  Arg.opt (Arg.some Arg.string) None &
+  Arg.info ["repos"] ~docv:"REPOS" ~doc
 
 let regexp_arg =
   let doc = "" in (* TODO *)
@@ -31,7 +37,7 @@ let cmd =
   let sdocs = Manpage.s_common_options in
   let exits = Term.default_exits in
   let man = [] in (* TODO *)
-  Term.ret (Term.const main $ regexp_arg $ main_regexp),
+  Term.ret (Term.const main $ repos_arg $ regexp_arg $ main_regexp),
   Term.info "opam-grep" ~version:Config.version ~doc ~sdocs ~exits ~man
 
 let () =
