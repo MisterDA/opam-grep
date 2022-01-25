@@ -1,3 +1,8 @@
+v0.3.0 (25/01/2022)
+-------------------
+
+- Add a --repos option to grep through only the selected repositories and not all of them (#3 suggestion from @Sudha247)
+
 v0.2.0 (11/09/2021)
 -------------------
 
