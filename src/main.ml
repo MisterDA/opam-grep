@@ -3,6 +3,7 @@
 module Term = Cmdliner.Term
 module Arg = Cmdliner.Arg
 module Manpage = Cmdliner.Manpage
+module Cmd = Cmdliner.Cmd
 
 let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
@@ -41,15 +42,17 @@ let main_regexp =
 let cmd =
   let doc = "greps anything in the sources of the latest version of every opam packages" in
   let sdocs = Manpage.s_common_options in
-  let exits = Term.default_exits in
+  let exits = Cmd.Exit.defaults in
   let man = [] in (* TODO *)
-  Term.ret (Term.const main $ repos_arg $ depends_on_arg $ regexp_arg $ main_regexp),
-  Term.info "opam-grep" ~version:Config.version ~doc ~sdocs ~exits ~man
+  let term = Term.ret (Term.const main $ repos_arg $ depends_on_arg $ regexp_arg $ main_regexp) in
+  let info = Cmd.info "opam-grep" ~version:Config.version ~doc ~sdocs ~exits ~man in
+  Cmd.v info term
 
 let () =
-  Term.exit @@ match Term.eval cmd with
-  | `Ok f ->
-      begin try f (); `Ok () with
-      | Grep.OpamGrepError msg -> prerr_endline ("Error: "^msg); exit 1
+  exit @@ match Cmd.eval_value cmd with
+  | Ok (`Ok f) ->
+      begin try f (); 0 with
+      | Grep.OpamGrepError msg -> prerr_endline ("Error: "^msg); 1
       end
-  | (`Error _ | `Version | `Help) as x -> x
+  | Ok (`Version | `Help) -> 0
+  | Error _ -> 1
