@@ -39,14 +39,18 @@ let dst () =
   in
   cachedir // "opam-grep"
 
-let sync ~repos ~dst =
+let sync ~repos ~depends_on ~dst =
   let repos = match repos with
     | None -> Cmd.empty
     | Some repos -> Cmd.empty % ("--repos="^repos)
   in
+  let depends_on = match depends_on with
+    | None -> Cmd.empty
+    | Some depends_on -> Cmd.empty % "--recursive" % ("--depends-on="^depends_on)
+  in
   let _exists : bool = result (Dir.create ~path:true dst) in
   let pkgs_bunch =
-    (Cmd.v "opam" % "list" % "-A" % "-s" % "--color=never" %% repos) |>
+    (Cmd.v "opam" % "list" % "-A" % "-s" % "--color=never" %% repos %% depends_on) |>
     Exec.run_out |>
     Exec.out_lines |>
     Exec.success |>
@@ -92,10 +96,10 @@ let bar ~total =
   let module Line = Progress.Line in
   Line.list [ Line.spinner (); Line.bar total; Line.count_to total ]
 
-let search ~repos ~regexp =
+let search ~repos ~depends_on ~regexp =
   let dst = dst () in
   prerr_endline "[Info] Getting the list of all known opam packages..";
-  let pkgs = sync ~repos ~dst in
+  let pkgs = sync ~repos ~depends_on ~dst in
   let grep = get_grep_cmd () in
   prerr_endline ("[Info] Fetching and grepping using "^Cmd.get_line_tool grep^"..");
   Progress.with_reporter (bar ~total:(List.length pkgs)) begin fun progress ->
