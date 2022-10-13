@@ -1,3 +1,9 @@
+v0.4.0 (13/10/2022)
+-------------------
+
+- Add a --depends-on option to grep through only the packages that (recursively) depends on some packages (#4 suggestion from @raphael-proust)
+- Upgrade to the cmdliner 1.1.0 API
+
 v0.3.0 (25/01/2022)
 -------------------
 
