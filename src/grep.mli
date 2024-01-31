@@ -7,3 +7,5 @@ val search :
   depends_on:string option ->
   regexp:string ->
   unit
+
+val dst : unit -> Fpath.t

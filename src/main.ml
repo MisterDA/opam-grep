@@ -8,12 +8,19 @@ module Cmd = Cmdliner.Cmd
 let ( $ ) = Cmdliner.Term.( $ )
 let ( & ) = Cmdliner.Arg.( & )
 
-let main repos depends_on regexp_arg main_regexp =
+let main cache repos depends_on regexp_arg main_regexp =
+  if cache then
+    `Ok (fun () -> print_endline (Grep.dst () |> Fpath.to_string))
+  else
   match regexp_arg, main_regexp with
   | Some _, Some _ -> `Error (true, "Two regexps given. This is not supported yet") (* TODO *)
   | None, None -> `Error (true, "No regexp given. This is required")
   | Some regexp, None
   | None, Some regexp -> `Ok (fun () -> Grep.search ~repos ~depends_on ~regexp)
+
+let cache_flag =
+  let doc = "Shows the location of the cache." in
+  Arg.value & Arg.flag & Arg.info ["cache"] ~doc
 
 let repos_arg =
   let doc = "" in (* TODO *)
@@ -44,7 +51,7 @@ let cmd =
   let sdocs = Manpage.s_common_options in
   let exits = Cmd.Exit.defaults in
   let man = [] in (* TODO *)
-  let term = Term.ret (Term.const main $ repos_arg $ depends_on_arg $ regexp_arg $ main_regexp) in
+  let term = Term.ret (Term.const main $ cache_flag $ repos_arg $ depends_on_arg $ regexp_arg $ main_regexp) in
   let info = Cmd.info "opam-grep" ~version:Config.version ~doc ~sdocs ~exits ~man in
   Cmd.v info term
 
