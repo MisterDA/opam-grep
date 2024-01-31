@@ -28,16 +28,17 @@ let list_split_bunch n l =
   in
   accu [] l
 
-let dst () =
-  let cachedir =
-    match Sys.getenv_opt "XDG_CACHE_HOME" with
-    | Some cachedir -> Fpath.v cachedir
-    | None ->
-        match Sys.getenv_opt "HOME" with
-        | Some homedir -> Fpath.v homedir // ".cache"
-        | None -> raise (OpamGrepError "Cannot find your home directory")
-  in
-  cachedir // "opam-grep"
+let dst =
+  let module App_id = struct
+      let qualifier = "org"
+      let organization = "kit-ty-kate"
+      let application = "opam-grep"
+    end in
+  let module M = Directories.Project_dirs (App_id) in
+  fun () ->
+  match M.cache_dir with
+  | None -> raise (OpamGrepError "Cannot find a cache directory")
+  | Some cache -> Fpath.v cache
 
 let sync ~repos ~depends_on ~dst =
   let repos = match repos with
